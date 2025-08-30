@@ -1,8 +1,7 @@
 /* -------------------------------------------------------------
    MiniShop — Vanilla E-Commerce (HTML • CSS • JS • JSON)
-   Features: Load catalog • Search • Filter • Sort • Cart + localStorage
-             Drawer UI • Keyboard shortcuts • One-click Demo
-             FormSubmit checkout email (native POST)
+   Option A: Supports products.json as { updatedAt, currency, products:[...] }
+             or a plain top-level array. Normalizes fields to UI shape.
 ---------------------------------------------------------------- */
 
 (() => {
@@ -50,9 +49,10 @@
   // ====== State ======
   let PRODUCTS = [];
   let FILTERED = [];
+  let currencySymbol = '$';
 
   // ====== Utils ======
-  const fmt = (n) => `$${Number(n || 0).toFixed(2)}`;
+  const fmt = (n) => `${currencySymbol}${Number(n || 0).toFixed(2)}`;
   const by = (k, dir = 1, proj = (x)=>x[k]) => (a,b) => (proj(a) > proj(b) ? 1 : proj(a) < proj(b) ? -1 : 0) * dir;
 
   async function fetchJSON(url) {
@@ -350,15 +350,31 @@
   // ====== Init ======
   (async function init() {
     try {
-      // Load products
-      PRODUCTS = await fetchJSON('./products.json');
+      // Load products — supports either an array or { updatedAt, currency, products:[...] }
+      const data = await fetchJSON('./products.json');
+      const raw = Array.isArray(data) ? data : (data.products || []);
 
-      // Normalize types where necessary
-      PRODUCTS.forEach(p => {
-        p.price    = Number(p.price);
-        p.rating   = Number(p.rating || 0);
-        p.createdAt= p.createdAt || (new Date()).toISOString();
-      });
+      // Currency symbol (fallback to $)
+      const code = (Array.isArray(data) ? null : data.currency) || 'USD';
+      const map = { USD:'$', EUR:'€', GBP:'£', CAD:'$', AUD:'$', JPY:'¥' };
+      currencySymbol = map[String(code).toUpperCase()] || '$';
+
+      // Normalize to the fields the UI expects
+      const updatedAt = Array.isArray(data) ? new Date().toISOString() : (data.updatedAt || new Date().toISOString());
+      PRODUCTS = raw.map(p => ({
+        ...p,
+        id: p.id,
+        title: p.title ?? p.name ?? 'Untitled',
+        description: p.description ?? '',
+        category: p.category ?? '',
+        price: Number(p.price),
+        rating: Number(p.rating || 0),
+        reviews: Number(p.reviews || 0),
+        featured: Boolean(p.featured),
+        image: p.image ?? '',
+        badge: p.badge ?? (p.new ? 'New' : ''),
+        createdAt: p.createdAt ?? updatedAt
+      }));
 
       populateCategories();
       applyFilters();
