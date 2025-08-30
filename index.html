@@ -3,9 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MiniShop — Vanilla E‑Commerce (HTML • CSS • JS • JSON)</title>
-  <meta name="description" content="A fully client‑side demo e‑commerce storefront built with HTML, CSS, JavaScript, and a JSON product catalog. Includes search, filters, sorting, cart with localStorage, and a mock checkout." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' rx='24' fill='%231a2b5a'/%3E%3Cpath d='M30 38h68l-8 56H38l-8-56z' fill='%23fff'/%3E%3Ccircle cx='54' cy='102' r='8' fill='%23fff'/%3E%3Ccircle cx='86' cy='102' r='8' fill='%23fff'/%3E%3C/svg%3E" />
+  <title>MiniShop — Vanilla E-Commerce</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -18,8 +16,8 @@
         <span>MiniShop</span>
       </div>
 
-      <div class="controls" role="group" aria-label="Catalog controls">
-        <input id="q" class="input" type="search" placeholder="Search products… (⌘/Ctrl + K)" aria-label="Search products" />
+      <div class="controls">
+        <input id="q" class="input" type="search" placeholder="Search products…" aria-label="Search products" />
         <select id="cat" aria-label="Filter by category">
           <option value="">All categories</option>
         </select>
@@ -30,9 +28,8 @@
           <option value="rating">Top Rated</option>
           <option value="new">Newest</option>
         </select>
-        <button id="cartBtn" class="btn cart-btn icon" aria-label="Open cart" title="Open cart (C)">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4h10l2 6H5l2-6Zm-1 8h12l-1.2 7.2A2 2 0 0 1 14.85 21h-5.7a2 2 0 0 1-1.95-1.8L6 12Zm3 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
-          <span id="cartBadge" class="cart-badge" aria-live="polite">0</span>
+        <button id="cartBtn" class="btn cart-btn icon" aria-label="Open cart">
+          🛒 <span id="cartBadge" class="cart-badge">0</span>
         </button>
       </div>
     </div>
@@ -41,16 +38,16 @@
   <section class="hero">
     <div class="wrap">
       <div>
-        <div class="headline">Discover great products. Built with <span style="color:var(--accent)">HTML</span>, <span style="color:var(--accent)">CSS</span>, <span style="color:var(--accent)">JS</span> & <span style="color:var(--accent-2)">JSON</span>.</div>
+        <div class="headline">Discover great products built with HTML • CSS • JS • JSON.</div>
         <div class="sub">Search • Filter • Sort • Add to Cart • Persist with localStorage • Mock Checkout</div>
       </div>
-      <button id="demoAdd" class="btn primary" title="Add a few items to the cart to try it out">One‑click Demo</button>
+      <button id="demoAdd" class="btn primary">One-click Demo</button>
     </div>
   </section>
 
   <main class="wrap">
     <div id="grid" class="grid" aria-live="polite"></div>
-    <div id="empty" class="empty" hidden>No products match your filters. Try clearing search or selecting a different category.</div>
+    <div id="empty" class="empty" hidden>No products match your filters.</div>
   </main>
 
   <!-- Cart Drawer -->
@@ -60,7 +57,7 @@
       <header>
         <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
           <h2 id="cartHeading">Your Cart</h2>
-          <button id="closeCart" class="btn icon" aria-label="Close cart"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.29 19.71 2.88 18.3 9.17 12 2.88 5.71 4.29 4.29 10.59 10.6l6.3-6.3 1.41 1.41Z"/></svg></button>
+          <button id="closeCart" class="btn icon" type="button" aria-label="Close cart">✕</button>
         </div>
       </header>
       <div class="content" id="cartLines"></div>
@@ -73,80 +70,77 @@
         </div>
         <div style="display:flex; gap:10px; margin-top:12px;">
           <button id="checkout" class="btn primary" style="flex:1">Checkout</button>
-          <button id="clearCart" class="btn" title="Remove all items">Clear</button>
+          <button id="clearCart" class="btn" type="button">Clear</button>
         </div>
       </footer>
     </aside>
   </div>
 
   <!-- Checkout Modal -->
-<dialog id="checkoutDialog" class="ck-modal">
-  <form id="checkoutForm" class="ck-card" method="dialog" aria-labelledby="ckTitle">
-    <header class="ck-header">
-      <h3 id="ckTitle">Checkout</h3>
-      <button type="button" class="btn icon ck-close" aria-label="Close">
-        ✕
-      </button>
-    </header>
+  <dialog id="checkoutDialog" class="ck-modal">
+    <form id="checkoutForm" class="ck-card" method="post" action="https://formsubmit.co/khiljiasad2@gmail.com" aria-labelledby="ckTitle">
+      <!-- FormSubmit hidden helpers -->
+      <input type="hidden" name="_subject" value="MiniShop order confirmation" />
+      <input type="hidden" name="_template" value="box" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_next" value="https://yourdomain.com/thank-you.html" />
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
 
-    <section class="ck-grid">
-      <div class="ck-field">
-        <label for="ckName">Full name</label>
-        <input id="ckName" name="name" type="text" autocomplete="name" required />
-      </div>
+      <header class="ck-header">
+        <h3 id="ckTitle">Checkout</h3>
+        <button type="button" class="btn icon ck-close" aria-label="Close">✕</button>
+      </header>
 
-      <div class="ck-field">
-        <label for="ckEmail">Email</label>
-        <input id="ckEmail" name="email" type="email" autocomplete="email" required />
-      </div>
+      <section class="ck-grid">
+        <div class="ck-field">
+          <label for="ckName">Full name</label>
+          <input id="ckName" name="name" type="text" required />
+        </div>
+        <div class="ck-field">
+          <label for="ckEmail">Email</label>
+          <input id="ckEmail" name="email" type="email" required />
+        </div>
+        <div class="ck-field ck-span-2">
+          <label for="ckAddr1">Address</label>
+          <input id="ckAddr1" name="address1" type="text" required />
+        </div>
+        <div class="ck-field ck-span-2">
+          <label for="ckAddr2">Apt/Suite (optional)</label>
+          <input id="ckAddr2" name="address2" type="text" />
+        </div>
+        <div class="ck-field">
+          <label for="ckCity">City</label>
+          <input id="ckCity" name="city" type="text" required />
+        </div>
+        <div class="ck-field">
+          <label for="ckState">State/Region</label>
+          <input id="ckState" name="state" type="text" required />
+        </div>
+        <div class="ck-field">
+          <label for="ckZip">ZIP/Postal</label>
+          <input id="ckZip" name="zip" type="text" required />
+        </div>
+        <div class="ck-field ck-span-2">
+          <label for="ckNotes">Notes (optional)</label>
+          <textarea id="ckNotes" name="notes" rows="3"></textarea>
+        </div>
+      </section>
 
-      <div class="ck-field ck-span-2">
-        <label for="ckAddr1">Address</label>
-        <input id="ckAddr1" name="address1" type="text" autocomplete="address-line1" required />
-      </div>
+      <section class="ck-summary">
+        <div class="row"><span>Items</span><span id="ckItemsCount">0</span></div>
+        <div class="row"><span>Subtotal</span><span id="ckSub">$0.00</span></div>
+        <div class="row"><span>Tax</span><span id="ckTax">$0.00</span></div>
+        <div class="row"><span>Shipping</span><span>Free</span></div>
+        <div class="row grand"><span>Total</span><strong id="ckTotal">$0.00</strong></div>
+      </section>
 
-      <div class="ck-field ck-span-2">
-        <label for="ckAddr2">Apt/Suite (optional)</label>
-        <input id="ckAddr2" name="address2" type="text" autocomplete="address-line2" />
-      </div>
+      <footer class="ck-actions">
+        <button type="submit" class="btn primary" id="ckSubmit">Place Order</button>
+        <button type="button" class="btn" id="ckCancel">Cancel</button>
+      </footer>
+    </form>
+  </dialog>
 
-      <div class="ck-field">
-        <label for="ckCity">City</label>
-        <input id="ckCity" name="city" type="text" autocomplete="address-level2" required />
-      </div>
-
-      <div class="ck-field">
-        <label for="ckState">State/Region</label>
-        <input id="ckState" name="state" type="text" autocomplete="address-level1" required />
-      </div>
-
-      <div class="ck-field">
-        <label for="ckZip">ZIP/Postal</label>
-        <input id="ckZip" name="zip" type="text" autocomplete="postal-code" required />
-      </div>
-
-      <div class="ck-field ck-span-2">
-        <label for="ckNotes">Notes (optional)</label>
-        <textarea id="ckNotes" name="notes" rows="3" placeholder="Delivery instructions, etc."></textarea>
-      </div>
-    </section>
-
-    <section class="ck-summary">
-      <div class="row"><span>Items</span><span id="ckItemsCount">0</span></div>
-      <div class="row"><span>Subtotal</span><span id="ckSub">$0.00</span></div>
-      <div class="row"><span>Tax</span><span id="ckTax">$0.00</span></div>
-      <div class="row"><span>Shipping</span><span>Free</span></div>
-      <div class="row grand"><span>Total</span><strong id="ckTotal">$0.00</strong></div>
-    </section>
-
-    <footer class="ck-actions">
-      <button type="submit" class="btn primary" id="ckSubmit">Place Order</button>
-      <button type="button" class="btn" id="ckCancel">Cancel</button>
-    </footer>
-  </form>
-</dialog>
-
-
- <script src="./app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
