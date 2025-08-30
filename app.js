@@ -1,401 +1,387 @@
-/*
- * MiniShop — Fully client-side storefront
- * - Catalog from products.json (preferred) with inline <script id="products-data"> fallback
- * - Search, filter by category, sort
- * - Cart with localStorage persistence
- * - Checkout modal that emails order details (Formspree or custom backend)
- *
- * Tip: When using products.json, serve via a local server so fetch() works:
- *   python3 -m http.server 8080
- */
+/* -------------------------------------------------------------
+   MiniShop — Vanilla E-Commerce (HTML • CSS • JS • JSON)
+   Features: Load catalog • Search • Filter • Sort • Cart + localStorage
+             Drawer UI • Keyboard shortcuts • One-click Demo
+             FormSubmit checkout email (native POST)
+---------------------------------------------------------------- */
 
-const $ = (sel, root=document) => root.querySelector(sel);
-const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
-const fmt = new Intl.NumberFormat(undefined, { style:'currency', currency:'USD' });
+(() => {
+  // ====== DOM ======
+  const $  = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
 
-// ---- State
-let PRODUCTS = [];
-const state = {
-  q: '',
-  cat: '',
-  sort: 'featured',
-  cart: loadCart(), // { [id]: qty }
-};
+  const elGrid      = $('#grid');
+  const elEmpty     = $('#empty');
+  const elQ         = $('#q');
+  const elCat       = $('#cat');
+  const elSort      = $('#sort');
 
-// ---- DOM refs
-const grid = document.getElementById('grid');
-const empty = document.getElementById('empty');
-const qInput = document.getElementById('q');
-const catSel = document.getElementById('cat');
-const sortSel = document.getElementById('sort');
-const cartBtn = document.getElementById('cartBtn');
-const cartBadge = document.getElementById('cartBadge');
-const drawer = document.getElementById('drawer');
-const closeCartBtn = document.getElementById('closeCart');
-const cartLines = document.getElementById('cartLines');
-const subTotalEl = document.getElementById('subTotal');
-const taxEl = document.getElementById('tax');
-const grandEl = document.getElementById('grand');
-const clearBtn = document.getElementById('clearCart');
-const checkoutBtn = document.getElementById('checkout');
-const demoAddBtn = document.getElementById('demoAdd');
+  const elCartBtn   = $('#cartBtn');
+  const elCartBadge = $('#cartBadge');
+  const elDrawer    = $('#drawer');
+  const elScrim     = $('#drawer .scrim');
+  const elPanel     = $('#drawer .panel');
+  const elCloseCart = $('#closeCart');
+  const elCartLines = $('#cartLines');
 
-// ---- Checkout modal DOM refs (make sure the dialog HTML exists in index.html)
-const ckDialog = document.getElementById('checkoutDialog');
-const ckForm   = document.getElementById('checkoutForm');
-const ckClose  = ckForm ? ckForm.querySelector('.ck-close') : null;
-const ckCancel = document.getElementById('ckCancel');
-const ckItemsCount = document.getElementById('ckItemsCount');
-const ckSub   = document.getElementById('ckSub');
-const ckTax   = document.getElementById('ckTax');
-const ckTotal = document.getElementById('ckTotal');
+  const elSubTotal  = $('#subTotal');
+  const elTax       = $('#tax');
+  const elShip      = $('#ship');
+  const elGrand     = $('#grand');
 
-// ---- Data loading
-async function loadCatalog() {
-  // 1) Try products.json (recommended)
-  try {
-    const res = await fetch('./products.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!data?.products) throw new Error('Invalid products.json shape');
-    console.info('Loaded catalog from products.json');
-    return data;
-  } catch (err) {
-    console.warn('Falling back to inline #products-data. Reason:', err);
+  const elDemoAdd   = $('#demoAdd');
+
+  const elCheckoutBtn = $('#checkout');
+  const ckDialog    = $('#checkoutDialog');
+  const ckForm      = $('#checkoutForm');
+  const ckCloseBtn  = $('#checkoutDialog .ck-close');
+  const ckCancelBtn = $('#ckCancel');
+
+  const ckItemsCount = $('#ckItemsCount');
+  const ckSub        = $('#ckSub');
+  const ckTax        = $('#ckTax');
+  const ckTotal      = $('#ckTotal');
+
+  // ====== Config ======
+  const CART_KEY     = 'minishop:cart';
+  const TAX_RATE     = 0.00; // set your tax rate here
+  const SHIP_LABEL   = 'Free';
+
+  // ====== State ======
+  let PRODUCTS = [];
+  let FILTERED = [];
+
+  // ====== Utils ======
+  const fmt = (n) => `$${Number(n || 0).toFixed(2)}`;
+  const by = (k, dir = 1, proj = (x)=>x[k]) => (a,b) => (proj(a) > proj(b) ? 1 : proj(a) < proj(b) ? -1 : 0) * dir;
+
+  async function fetchJSON(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+    return res.json();
   }
 
-  // 2) Fallback to inline <script id="products-data"> if present
-  const inline = document.getElementById('products-data');
-  if (inline?.textContent?.trim()) {
-    try {
-      const data = JSON.parse(inline.textContent);
-      if (!data?.products) throw new Error('Invalid inline catalog shape');
-      console.info('Loaded catalog from inline script tag');
-      return data;
-    } catch (e) {
-      console.error('Inline catalog parse error:', e);
-    }
+  function getCart() {
+    try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
+    catch { return []; }
   }
 
-  // 3) Final fallback: empty list
-  console.error('No catalog found. Ensure products.json exists or keep the inline script.');
-  return { products: [] };
-}
-
-// ---- Helpers
-function saveCart(){ localStorage.setItem('minishop.cart', JSON.stringify(state.cart)); updateCartBadge(); }
-function loadCart(){ try{ return JSON.parse(localStorage.getItem('minishop.cart')) || {} } catch{ return {} } }
-function cartCount(){ return Object.values(state.cart).reduce((a,b)=>a+b,0) }
-
-function categoryColor(cat){
-  const map = {
-    'Electronics':'#60a5fa',
-    'Outdoors':'#34d399',
-    'Apparel':'#f472b6',
-    'Home & Living':'#f59e0b'
-  };
-  return map[cat] || '#a78bfa';
-}
-function placeholderImg(name, cat){
-  const bg = categoryColor(cat);
-  const text = encodeURIComponent(name.split(' ').slice(0,2).join('%20'));
-  const svg = `<?xml version='1.0' encoding='UTF-8'?>
-  <svg xmlns='http://www.w3.org/2000/svg' width='800' height='500'>
-    <defs>
-      <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
-        <stop offset='0' stop-color='${bg}' stop-opacity='.25'/>
-        <stop offset='1' stop-color='#0b1229'/>
-      </linearGradient>
-    </defs>
-    <rect width='100%' height='100%' fill='url(%23g)'/>
-    <g fill='#e2e8f0' font-family='Inter, ui-sans-serif, system-ui' font-weight='800'>
-      <text x='50%' y='54%' text-anchor='middle' font-size='48'>${text}</text>
-    </g>
-  </svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-}
-
-function updateCartBadge(){ cartBadge.textContent = cartCount(); }
-
-function applyFilters(){
-  const term = state.q.trim().toLowerCase();
-  let list = PRODUCTS.filter(p => (
-    (!state.cat || p.category === state.cat) &&
-    (!term || p.name.toLowerCase().includes(term) || p.description.toLowerCase().includes(term) || p.brand.toLowerCase().includes(term))
-  ));
-  switch(state.sort){
-    case 'price-asc': list.sort((a,b)=>a.price-b.price); break;
-    case 'price-desc': list.sort((a,b)=>b.price-a.price); break;
-    case 'rating': list.sort((a,b)=>b.rating-a.rating); break;
-    case 'new': list.sort((a,b)=> (b.new===true)-(a.new===true) || b.reviews-a.reviews ); break;
-    default: // featured
-      list.sort((a,b)=> (b.featured===true)-(a.featured===true) || b.reviews-a.reviews);
+  function setCart(arr) {
+    localStorage.setItem(CART_KEY, JSON.stringify(arr));
+    updateCartBadge();
   }
-  return list;
-}
 
-function render(){
-  const items = applyFilters();
-  grid.innerHTML = '';
-  if(items.length === 0){ empty.hidden = false; return }
-  empty.hidden = true;
-  for(const p of items){
-    const card = document.createElement('article');
-    card.className = 'card'; card.setAttribute('aria-label', p.name);
-    card.innerHTML = `
-      <div class="thumb">
-        <span class="pill">${p.category}</span>
-        <img alt="${p.name}" src="${placeholderImg(p.name, p.category)}" loading="lazy" decoding="async" />
-      </div>
-      <div class="body">
-        <div class="title">${p.name}</div>
-        <div class="desc">${p.description}</div>
-        <div class="price-row">
-          <div>
-            <div class="price">${fmt.format(p.price)}</div>
-            <div class="rating">★ ${p.rating.toFixed(1)} <span style="color:var(--muted); font-weight:600">(${p.reviews})</span></div>
-          </div>
-          <button class="btn add" data-id="${p.id}" aria-label="Add ${p.name} to cart">Add</button>
-        </div>
-      </div>`;
-    grid.appendChild(card);
+  function addToCart(item) {
+    const cart = getCart();
+    const found = cart.find(x => x.id === item.id);
+    if (found) found.qty += item.qty || 1;
+    else cart.push({ id: item.id, title: item.title, price: Number(item.price), qty: item.qty || 1, image: item.image || '' });
+    setCart(cart);
+    renderCartLines();
   }
-}
 
-// ---- Cart ops
-function addToCart(id, qty=1){ state.cart[id] = (state.cart[id]||0) + qty; saveCart(); flashCartBtn(); }
-function removeFromCart(id){ delete state.cart[id]; saveCart(); renderCart(); }
-function setQty(id, qty){ if(qty<=0) { removeFromCart(id); } else { state.cart[id]=qty; saveCart(); renderCartTotals(); } }
-
-function renderCart(){
-  cartLines.innerHTML = '';
-  const ids = Object.keys(state.cart);
-  if(ids.length===0){
-    const div = document.createElement('div');
-    div.className = 'empty'; div.textContent = 'Your cart is empty. Add some items!';
-    cartLines.appendChild(div);
-  } else {
-    for(const id of ids){
-      const p = PRODUCTS.find(x=>x.id===id); if(!p) continue;
-      const qty = state.cart[id];
-      const line = document.createElement('div');
-      line.className = 'line'; line.innerHTML = `
-        <div class="mini"><img src="${placeholderImg(p.name, p.category)}" alt="" width="56" height="56"/></div>
-        <div>
-          <div class="name">${p.name}</div>
-          <div class="desc" style="margin-top:2px">${fmt.format(p.price)} • <span style="color:var(--muted)">${p.brand}</span></div>
-        </div>
-        <div style="display:grid; gap:6px; justify-items:end">
-          <div class="qty">
-            <button data-step="-1" data-id="${p.id}" aria-label="Decrease quantity">−</button>
-            <input inputmode="numeric" pattern="[0-9]*" value="${qty}" data-id="${p.id}" aria-label="Quantity for ${p.name}" />
-            <button data-step="1" data-id="${p.id}" aria-label="Increase quantity">+</button>
-          </div>
-          <button class="btn" data-remove="${p.id}" aria-label="Remove ${p.name}">Remove</button>
-        </div>`;
-      cartLines.appendChild(line);
-    }
+  function removeFromCart(id) {
+    setCart(getCart().filter(x => x.id !== id));
+    renderCartLines();
   }
-  renderCartTotals();
-}
 
-function renderCartTotals(){
-  const lines = Object.entries(state.cart).map(([id,qty])=>{
-    const p = PRODUCTS.find(x=>x.id===id); if(!p) return 0; return p.price*qty;
-  });
-  const sub = lines.reduce((a,b)=>a+b,0);
-  const tax = +(sub * 0.07).toFixed(2); // 7% example tax
-  const grand = sub + tax; 
-  subTotalEl.textContent = fmt.format(sub);
-  taxEl.textContent = fmt.format(tax);
-  grandEl.textContent = fmt.format(grand);
-  updateCartBadge();
-}
-
-function openCart(){ drawer.classList.add('open'); drawer.setAttribute('aria-hidden','false'); renderCart(); }
-function closeCart(){ drawer.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
-function flashCartBtn(){ cartBtn.animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:240}); }
-
-// ---- Events
-qInput.addEventListener('input', e=>{ state.q = e.target.value; render(); });
-catSel.addEventListener('change', e=>{ state.cat = e.target.value; render(); });
-sortSel.addEventListener('change', e=>{ state.sort = e.target.value; render(); });
-
-grid.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.add');
-  if(btn){ addToCart(btn.dataset.id, 1); }
-});
-
-cartBtn.addEventListener('click', openCart);
-$('#drawer .scrim').addEventListener('click', closeCart);
-closeCartBtn.addEventListener('click', closeCart);
-
-cartLines.addEventListener('click', e=>{
-  const rm = e.target.closest('[data-remove]');
-  if(rm){ removeFromCart(rm.dataset.remove); }
-  const stepBtn = e.target.closest('button[data-step]');
-  if(stepBtn){
-    const id = stepBtn.dataset.id; const step = parseInt(stepBtn.dataset.step,10);
-    const current = state.cart[id]||1; setQty(id, current + step);
+  function updateQty(id, qty) {
+    const cart = getCart();
+    const line = cart.find(x => x.id === id);
+    if (!line) return;
+    line.qty = Math.max(1, Number(qty) || 1);
+    setCart(cart);
+    renderCartLines();
   }
-});
-cartLines.addEventListener('input', e=>{
-  const inp = e.target.closest('input[data-id]');
-  if(inp){ const id = inp.dataset.id; const val = Math.max(0, parseInt(inp.value||'0',10)); setQty(id, val); }
-});
 
-clearBtn.addEventListener('click', ()=>{ state.cart = {}; saveCart(); renderCart(); });
-
-// Keyboard shortcuts
-document.addEventListener('keydown', (e)=>{
-  if((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); qInput.focus(); }
-  if(e.key.toLowerCase()==='c'){ openCart(); }
-  if(e.key==='Escape'){ 
-    // close topmost thing (dialog > drawer)
-    if(ckDialog && ckDialog.open) ckDialog.close();
-    else closeCart(); 
+  function clearCart() {
+    setCart([]);
+    renderCartLines();
   }
-});
 
-// ---- Checkout helpers
-function getOrderSnapshot(){
-  const items = Object.entries(state.cart).map(([id, qty])=>{
-    const p = PRODUCTS.find(x=>x.id===id);
-    return p ? { id, name: p.name, price: p.price, qty, line: +(p.price*qty).toFixed(2) } : null;
-  }).filter(Boolean);
+  function totals(cart) {
+    const subtotal = cart.reduce((s,i) => s + Number(i.price) * Number(i.qty), 0);
+    const tax = +(subtotal * TAX_RATE).toFixed(2);
+    const grand = +(subtotal + tax).toFixed(2);
+    return { subtotal, tax, grand };
+  }
 
-  const sub = items.reduce((a,b)=>a+b.line,0);
-  const tax = +(sub * 0.07).toFixed(2);
-  const total = +(sub + tax).toFixed(2);
-  const count = items.reduce((a,b)=>a+b.qty,0);
+  function updateCartBadge() {
+    const count = getCart().reduce((s,i)=>s+Number(i.qty),0);
+    elCartBadge.textContent = String(count);
+  }
 
-  return { items, sub, tax, total, count };
-}
-
-function orderAsText(order, customer, orderId){
-  const lines = order.items.map(i => `• ${i.name} x${i.qty} — $${i.line.toFixed(2)}`).join('\n');
-  return `
-Order: ${orderId}
-Name: ${customer.name}
-Email: ${customer.email}
-Address: ${customer.address1}${customer.address2 ? (', ' + customer.address2) : ''}, ${customer.city}, ${customer.state} ${customer.zip}
-Notes: ${customer.notes || '-'}
-
-Items (${order.count}):
-${lines}
-
-Subtotal: $${order.sub.toFixed(2)}
-Tax: $${order.tax.toFixed(2)}
-Shipping: Free
-Total: $${order.total.toFixed(2)}
-`.trim();
-}
-
-// ---- Checkout (email handoff)
-// Replace with your Formspree endpoint or a backend route (see readme/instructions)
-const FORMSUBMIT_ENDPOINT = 'https://formsubmit.co/khiljiasad2@gmail.com';
-
-if (checkoutBtn && ckDialog && ckForm) {
-  checkoutBtn.addEventListener('click', ()=>{
-    if(cartCount()===0){ alert('Your cart is empty.'); return; }
-    // populate summary
-    const snap = getOrderSnapshot();
-    if (ckItemsCount) ckItemsCount.textContent = String(snap.count);
-    if (ckSub)   ckSub.textContent  = fmt.format(snap.sub);
-    if (ckTax)   ckTax.textContent  = fmt.format(snap.tax);
-    if (ckTotal) ckTotal.textContent = fmt.format(snap.total);
-
-    // open modal
-    ckDialog.showModal();
-    const firstField = ckForm.querySelector('#ckName');
-    if (firstField) firstField.focus();
-  });
-
-  if (ckClose)  ckClose.addEventListener('click', ()=> ckDialog.close());
-  if (ckCancel) ckCancel.addEventListener('click', ()=> ckDialog.close());
-
-  ckForm.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const form = new FormData(ckForm);
-    const customer = {
-      name: form.get('name')?.toString().trim(),
-      email: form.get('email')?.toString().trim(),
-      address1: form.get('address1')?.toString().trim(),
-      address2: form.get('address2')?.toString().trim(),
-      city: form.get('city')?.toString().trim(),
-      state: form.get('state')?.toString().trim(),
-      zip: form.get('zip')?.toString().trim(),
-      notes: form.get('notes')?.toString().trim(),
-    };
-
-    // Basic validation
-    if(!customer.name || !customer.email || !customer.address1 || !customer.city || !customer.state || !customer.zip){
-      alert('Please complete all required fields.');
+  // ====== Catalog ======
+  function renderProducts(items) {
+    elGrid.innerHTML = '';
+    if (!items.length) {
+      elEmpty.hidden = false;
       return;
     }
+    elEmpty.hidden = true;
 
-    const orderId = 'ORD-' + Math.random().toString(36).slice(2,8).toUpperCase();
-    const snap = getOrderSnapshot();
-    const emailText = orderAsText(snap, customer, orderId);
-
-    // Payload: include both machine-readable and a text fallback
-    const payload = {
-      orderId,
-      ...customer,
-      items: snap.items,
-      subtotal: snap.sub,
-      tax: snap.tax,
-      total: snap.total,
-      message: emailText
-    };
-
-    const submitBtn = document.getElementById('ckSubmit');
-    if (submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Sending…'; }
-
-    try{
-      const res = await fetch(FORMSUBMIT_ENDPOINT, {
-  method: 'POST',
-  headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
-  body: JSON.stringify(payload)
-});
-
-      if(!res.ok){
-        throw new Error(`Email send failed (${res.status})`);
-      }
-
-      alert(`Thank you! Your order ${orderId} was sent. We'll email you shortly.`);
-      state.cart = {}; saveCart(); renderCart(); closeCart(); ckDialog.close();
-
-    } catch(err){
-      console.error(err);
-      alert('Sorry, there was an issue sending your order. Please try again.');
-    } finally {
-      if (submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Place Order'; }
-    }
-  });
-}
-
-// ---- Boot
-(async function init(){
-  const catalog = await loadCatalog();
-  PRODUCTS = (catalog.products || []).map(p => ({...p}));
-
-  // Populate categories after products load
-  const categories = Array.from(new Set(PRODUCTS.map(p => p.category))).sort();
-  for(const c of categories){
-    const opt = document.createElement('option');
-    opt.value = c; opt.textContent = c; catSel.appendChild(opt);
+    const frag = document.createDocumentFragment();
+    items.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="thumb">
+          ${p.badge ? `<span class="pill">${p.badge}</span>` : ''}
+          ${p.image ? `<img src="${p.image}" alt="${p.title}">` : ''}
+        </div>
+        <div class="body">
+          <div class="title">${p.title}</div>
+          <div class="desc">${p.description || ''}</div>
+          <div class="price-row">
+            <div class="price">${fmt(p.price)}</div>
+            <div class="rating" aria-label="Rating ${p.rating ?? 0} out of 5">★ ${(p.rating ?? 0).toFixed(1)}</div>
+          </div>
+          <button class="btn primary add" aria-label="Add ${p.title} to cart">Add to Cart</button>
+        </div>
+      `;
+      $('.add', card).addEventListener('click', () => addToCart({ id:p.id, title:p.title, price:p.price, qty:1, image:p.image }));
+      frag.appendChild(card);
+    });
+    elGrid.appendChild(frag);
   }
 
-  render();
-  updateCartBadge();
-})();
+  function applyFilters() {
+    const q = (elQ.value || '').trim().toLowerCase();
+    const cat = elCat.value || '';
+    let arr = PRODUCTS.slice();
 
-// Demo add after init (kept same)
-if (demoAddBtn){
-  demoAddBtn.addEventListener('click', ()=>{
-    const picks = PRODUCTS.filter(p=>p.featured).sort(()=>Math.random()-.5).slice(0,3);
-    picks.forEach(p=>addToCart(p.id, 1));
-    openCart();
+    if (q) {
+      arr = arr.filter(p =>
+        (p.title || '').toLowerCase().includes(q) ||
+        (p.description || '').toLowerCase().includes(q)
+      );
+    }
+    if (cat) {
+      arr = arr.filter(p => String(p.category) === cat);
+    }
+
+    switch (elSort.value) {
+      case 'price-asc':  arr.sort(by('price', +1, x=>Number(x.price))); break;
+      case 'price-desc': arr.sort(by('price', -1, x=>Number(x.price))); break;
+      case 'rating':     arr.sort(by('rating', -1, x=>Number(x.rating || 0))); break;
+      case 'new':        arr.sort(by('createdAt', -1, x=>new Date(x.createdAt||0).getTime())); break;
+      default:           arr.sort(by('featured', -1, x=>(x.featured?1:0))); break;
+    }
+
+    FILTERED = arr;
+    renderProducts(FILTERED);
+  }
+
+  function populateCategories() {
+    const cats = [...new Set(PRODUCTS.map(p => String(p.category || '')))].filter(Boolean).sort();
+    elCat.innerHTML = `<option value="">All categories</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
+  // ====== Drawer (Cart) ======
+  function openDrawer() {
+    elDrawer.classList.add('open');
+    elDrawer.setAttribute('aria-hidden', 'false');
+    renderCartLines();
+  }
+  function closeDrawer() {
+    elDrawer.classList.remove('open');
+    elDrawer.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderCartLines() {
+    const cart = getCart();
+    const { subtotal, tax, grand } = totals(cart);
+
+    elCartLines.innerHTML = '';
+
+    if (!cart.length) {
+      elCartLines.innerHTML = `<div class="empty">Your cart is empty.</div>`;
+    } else {
+      const frag = document.createDocumentFragment();
+      cart.forEach(line => {
+        const row = document.createElement('div');
+        row.className = 'line';
+        row.innerHTML = `
+          <div class="mini">${line.image ? `<img src="${line.image}" alt="" style="max-width:70%; max-height:70%; object-fit:contain">` : ''}</div>
+          <div>
+            <div class="name">${line.title}</div>
+            <div class="desc">${fmt(line.price)} each</div>
+            <div class="qty" aria-label="Quantity controls">
+              <button type="button" aria-label="Decrease">−</button>
+              <input type="number" min="1" value="${line.qty}">
+              <button type="button" aria-label="Increase">+</button>
+            </div>
+          </div>
+          <div style="display:grid; gap:8px; justify-items:end">
+            <div><strong>${fmt(line.price * line.qty)}</strong></div>
+            <button class="btn" type="button">Remove</button>
+          </div>
+        `;
+        const [decBtn, qtyInput, incBtn] = $$('.qty button, .qty input', row);
+        decBtn.addEventListener('click', () => updateQty(line.id, line.qty - 1));
+        incBtn.addEventListener('click', () => updateQty(line.id, line.qty + 1));
+        qtyInput.addEventListener('change', (e) => updateQty(line.id, e.target.value));
+        $('.btn', row).addEventListener('click', () => removeFromCart(line.id));
+        frag.appendChild(row);
+      });
+      elCartLines.appendChild(frag);
+    }
+
+    elSubTotal.textContent = fmt(subtotal);
+    elTax.textContent      = fmt(tax);
+    elShip.textContent     = SHIP_LABEL;
+    elGrand.textContent    = fmt(grand);
+
+    // Update checkout summary if dialog is open
+    if (ckDialog?.open) {
+      ckItemsCount.textContent = String(cart.reduce((s,i)=>s+Number(i.qty),0));
+      ckSub.textContent   = fmt(subtotal);
+      ckTax.textContent   = fmt(tax);
+      ckTotal.textContent = fmt(grand);
+    }
+  }
+
+  // ====== Checkout (FormSubmit wiring; native POST) ======
+  const COPY_ME = ''; // e.g. 'orders@yourdomain.com' or leave empty
+
+  function ensureHidden(name, value) {
+    let input = ckForm.querySelector(`input[name="${name}"]`);
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      ckForm.appendChild(input);
+    }
+    input.value = value;
+  }
+
+  function cartToText(items) {
+    if (!items.length) return '(no items)';
+    return items.map(i => `${i.title} × ${i.qty} — ${fmt(Number(i.price) * Number(i.qty))}`).join('\n');
+  }
+
+  function cartToJSON(items, t) {
+    return JSON.stringify({
+      items: items.map(i => ({
+        id: i.id, title: i.title, qty: Number(i.qty),
+        price: Number(i.price),
+        lineTotal: +(Number(i.price) * Number(i.qty)).toFixed(2)
+      })),
+      totals: {
+        subtotal: +t.subtotal.toFixed(2),
+        tax: +t.tax.toFixed(2),
+        total: +t.grand.toFixed(2),
+        currency: 'USD'
+      },
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  function openCheckout() {
+    const cart = getCart();
+    const t = totals(cart);
+    ckItemsCount.textContent = String(cart.reduce((s,i)=>s+Number(i.qty),0));
+    ckSub.textContent   = fmt(t.subtotal);
+    ckTax.textContent   = fmt(t.tax);
+    ckTotal.textContent = fmt(t.grand);
+    if (ckDialog && typeof ckDialog.showModal === 'function') ckDialog.showModal();
+  }
+  function closeCheckout() {
+    try { ckDialog?.close(); } catch {}
+  }
+
+  ckForm?.addEventListener('submit', () => {
+    const cart = getCart();
+    const t = totals(cart);
+
+    ensureHidden('order_items', cartToText(cart));
+    ensureHidden('order_json',  cartToJSON(cart, t));
+    ensureHidden('subtotal',    t.subtotal.toFixed(2));
+    ensureHidden('tax',         t.tax.toFixed(2));
+    ensureHidden('total',       t.grand.toFixed(2));
+    if (COPY_ME) ensureHidden('_cc', COPY_ME);
+
+    // Use shopper email as reply-to if present
+    const emailField = ckForm.querySelector('input[name="email"]');
+    if (emailField?.value) ensureHidden('_replyto', emailField.value);
+
+    // Do NOT preventDefault — let the native POST submit to FormSubmit
+    // After redirect, your _next URL will show; you can also clear the cart:
+    localStorage.removeItem(CART_KEY);
   });
-}
+
+  // ====== Events / Wiring ======
+  elQ?.addEventListener('input', applyFilters);
+  elCat?.addEventListener('change', applyFilters);
+  elSort?.addEventListener('change', applyFilters);
+
+  elCartBtn?.addEventListener('click', openDrawer);
+  elCloseCart?.addEventListener('click', closeDrawer);
+  elScrim?.addEventListener('click', closeDrawer);
+
+  $('#clearCart')?.addEventListener('click', clearCart);
+  elCheckoutBtn?.addEventListener('click', (e) => { e.preventDefault(); openCheckout(); });
+  ckCloseBtn?.addEventListener('click', closeCheckout);
+  ckCancelBtn?.addEventListener('click', closeCheckout);
+
+  // One-click Demo: add a few items quickly
+  elDemoAdd?.addEventListener('click', async () => {
+    if (!FILTERED.length) return;
+    const picks = FILTERED.slice(0, Math.min(3, FILTERED.length));
+    picks.forEach(p => addToCart({ id:p.id, title:p.title, price:p.price, qty:1, image:p.image }));
+    openDrawer();
+  });
+
+  // Keyboard shortcuts
+  window.addEventListener('keydown', (e) => {
+    // Cmd/Ctrl + K => focus search
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      elQ?.focus();
+      elQ?.select();
+    }
+    // 'c' to toggle cart
+    if (!e.ctrlKey && !e.metaKey && e.key.toLowerCase() === 'c') {
+      const isOpen = elDrawer.classList.contains('open');
+      isOpen ? closeDrawer() : openDrawer();
+    }
+  });
+
+  // ====== Init ======
+  (async function init() {
+    try {
+      // Load products
+      PRODUCTS = await fetchJSON('./products.json');
+
+      // Normalize types where necessary
+      PRODUCTS.forEach(p => {
+        p.price    = Number(p.price);
+        p.rating   = Number(p.rating || 0);
+        p.createdAt= p.createdAt || (new Date()).toISOString();
+      });
+
+      populateCategories();
+      applyFilters();
+      updateCartBadge();
+      renderCartLines();
+
+      // Accessibility: announce results count
+      const announce = () => {
+        const c = FILTERED.length;
+        elGrid?.setAttribute('aria-label', `${c} product${c===1?'':'s'} shown`);
+      };
+      elQ?.addEventListener('input', announce);
+      elCat?.addEventListener('change', announce);
+      elSort?.addEventListener('change', announce);
+
+      // Safety: ensure checkout form action points to FormSubmit
+      if (ckForm && !/^https:\/\/formsubmit\.co\//.test(ckForm.getAttribute('action') || '')) {
+        console.warn('[MiniShop] Checkout form "action" is not FormSubmit — emails will not send.');
+      }
+    } catch (err) {
+      console.error('Init error:', err);
+      elGrid.innerHTML = `<div class="empty">Could not load products.</div>`;
+      elEmpty.hidden = true;
+    }
+  })();
+})();
