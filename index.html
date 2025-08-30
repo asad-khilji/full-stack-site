@@ -1,146 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
+  <title>MiniShop</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MiniShop — Vanilla E-Commerce</title>
-  <link rel="stylesheet" href="./styles.css">
+  <!-- Ensure the path is correct; put styles.css beside this file -->
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
+  <!-- Top bar -->
   <header>
     <div class="bar">
-      <div class="brand" aria-label="MiniShop home">
+      <div class="brand">
         <div class="logo" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4h10l2 6H5l2-6Zm-1 8h12l-1.2 7.2A2 2 0 0 1 14.85 21h-5.7a2 2 0 0 1-1.95-1.8L6 12Zm3 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 12a8 8 0 0116 0" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="3.5" stroke="white" stroke-width="2"/>
+          </svg>
         </div>
         <span>MiniShop</span>
       </div>
 
       <div class="controls">
-        <input id="q" class="input" type="search" placeholder="Search products…" aria-label="Search products" />
-        <select id="cat" aria-label="Filter by category">
-          <option value="">All categories</option>
-        </select>
-        <select id="sort" aria-label="Sort products">
+        <input id="q" class="input" type="search" placeholder="Search products…" aria-label="Search" />
+        <select id="cat" aria-label="Category"></select>
+        <select id="sort" aria-label="Sort">
           <option value="featured">Featured</option>
-          <option value="price-asc">Price: Low to High</option>
-          <option value="price-desc">Price: High to Low</option>
-          <option value="rating">Top Rated</option>
           <option value="new">Newest</option>
+          <option value="rating">Best Rated</option>
+          <option value="price-asc">Price: Low → High</option>
+          <option value="price-desc">Price: High → Low</option>
         </select>
-        <button id="cartBtn" class="btn cart-btn icon" aria-label="Open cart">
-          🛒 <span id="cartBadge" class="cart-badge">0</span>
+
+        <button id="cartBtn" class="btn cart-btn">
+          Cart
+          <span id="cartBadge" class="cart-badge">0</span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- Hero -->
   <section class="hero">
     <div class="wrap">
       <div>
-        <div class="headline">Discover great products built with HTML • CSS • JS • JSON.</div>
-        <div class="sub">Search • Filter • Sort • Add to Cart • Persist with localStorage • Mock Checkout</div>
+        <div class="headline">Find your next favorite thing</div>
+        <div class="sub">Electronics, apparel, home & more — all in one tidy shop.</div>
       </div>
-      <button id="demoAdd" class="btn primary">One-click Demo</button>
+      <button id="demoAdd" class="btn primary">Demo: Add Sample Items</button>
     </div>
   </section>
 
+  <!-- Catalog -->
   <main class="wrap">
-    <div id="grid" class="grid" aria-live="polite"></div>
-    <div id="empty" class="empty" hidden>No products match your filters.</div>
+    <div id="empty" class="empty" hidden>No products found.</div>
+    <!-- Keep the id for JS; add class for CSS -->
+    <div id="grid" class="grid" aria-label="0 products shown"></div>
   </main>
 
   <!-- Cart Drawer -->
-  <div id="drawer" class="drawer" aria-hidden="true">
+  <aside id="drawer" class="drawer" aria-hidden="true">
     <div class="scrim" role="button" aria-label="Close cart"></div>
-    <aside class="panel" aria-labelledby="cartHeading">
+    <div class="panel">
       <header>
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-          <h2 id="cartHeading">Your Cart</h2>
-          <button id="closeCart" class="btn icon" type="button" aria-label="Close cart">✕</button>
-        </div>
+        <h2>Your Cart</h2>
       </header>
-      <div class="content" id="cartLines"></div>
+
+      <div class="content">
+        <div id="cartLines"></div>
+      </div>
+
       <footer>
         <div class="totals">
-          <div class="row"><span>Subtotal</span><strong id="subTotal">$0.00</strong></div>
-          <div class="row"><span>Tax (est.)</span><span id="tax">$0.00</span></div>
-          <div class="row"><span>Shipping</span><span id="ship">Free</span></div>
-          <div class="row grand"><span>Total</span><span id="grand">$0.00</span></div>
+          <div class="row"><span>Subtotal</span> <span id="subTotal">$0.00</span></div>
+          <div class="row"><span>Tax</span> <span id="tax">$0.00</span></div>
+          <div class="row"><span>Shipping</span> <span id="ship">Free</span></div>
+          <div class="row grand"><span>Total</span> <span id="grand">$0.00</span></div>
         </div>
-        <div style="display:flex; gap:10px; margin-top:12px;">
-          <button id="checkout" class="btn primary" style="flex:1">Checkout</button>
-          <button id="clearCart" class="btn" type="button">Clear</button>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px">
+          <button id="clearCart" class="btn">Clear Cart</button>
+          <button id="checkout" class="btn primary">Checkout</button>
+          <button id="closeCart" class="btn">Close</button>
         </div>
       </footer>
-    </aside>
-  </div>
+    </div>
+  </aside>
 
   <!-- Checkout Modal -->
-  <dialog id="checkoutDialog" class="ck-modal">
-    <form id="checkoutForm" class="ck-card" method="post" action="https://formsubmit.co/khiljiasad2@gmail.com" aria-labelledby="ckTitle">
-      <!-- FormSubmit hidden helpers -->
-      <input type="hidden" name="_subject" value="MiniShop order confirmation" />
-      <input type="hidden" name="_template" value="box" />
-      <input type="hidden" name="_captcha" value="false" />
-      <input type="hidden" name="_next" value="https://yourdomain.com/thank-you.html" />
-      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
+  <!-- Your CSS targets .ck-modal (dialog), .ck-card, .ck-header, .ck-grid, etc. -->
+<dialog id="checkoutDialog" class="ck-modal">
+  <div class="ck-card">
+    <div class="ck-header">
+      <h3>Checkout</h3>
+      <button type="button" class="btn icon ck-close" aria-label="Close">✖</button>
+    </div>
 
-      <header class="ck-header">
-        <h3 id="ckTitle">Checkout</h3>
-        <button type="button" class="btn icon ck-close" aria-label="Close">✕</button>
-      </header>
-
-      <section class="ck-grid">
-        <div class="ck-field">
-          <label for="ckName">Full name</label>
-          <input id="ckName" name="name" type="text" required />
+    <form id="checkoutForm"
+          action="https://formsubmit.co/khiljiasad2@gmail.com"
+          method="POST" novalidate>
+      <div class="ck-grid">
+        <!-- Summary (full width) -->
+        <div class="ck-field ck-span-2">
+          <div class="ck-summary">
+            <div class="row"><span>Items</span> <span><span id="ckItemsCount">0</span></span></div>
+            <div class="row"><span>Subtotal</span> <span id="ckSub">$0.00</span></div>
+            <div class="row"><span>Tax</span> <span id="ckTax">$0.00</span></div>
+            <div class="row grand"><span>Total</span> <span id="ckTotal">$0.00</span></div>
+          </div>
         </div>
+
+        <!-- Customer Info -->
+        <div class="ck-field">
+          <label for="ckName">Name</label>
+          <input id="ckName" type="text" name="name" required />
+        </div>
+
         <div class="ck-field">
           <label for="ckEmail">Email</label>
-          <input id="ckEmail" name="email" type="email" required />
+          <input id="ckEmail" type="email" name="email" required />
         </div>
+
+        <!-- Address -->
         <div class="ck-field ck-span-2">
-          <label for="ckAddr1">Address</label>
-          <input id="ckAddr1" name="address1" type="text" required />
+          <label for="ckAddress">Address</label>
+          <input id="ckAddress" type="text" name="address" placeholder="Street address" required />
         </div>
-        <div class="ck-field ck-span-2">
-          <label for="ckAddr2">Apt/Suite (optional)</label>
-          <input id="ckAddr2" name="address2" type="text" />
-        </div>
+
         <div class="ck-field">
           <label for="ckCity">City</label>
-          <input id="ckCity" name="city" type="text" required />
+          <input id="ckCity" type="text" name="city" required />
         </div>
+
         <div class="ck-field">
-          <label for="ckState">State/Region</label>
-          <input id="ckState" name="state" type="text" required />
+          <label for="ckState">State/Province</label>
+          <input id="ckState" type="text" name="state" required />
         </div>
+
         <div class="ck-field">
           <label for="ckZip">ZIP/Postal</label>
-          <input id="ckZip" name="zip" type="text" required />
+          <input id="ckZip" type="text" name="zip" required />
         </div>
+
+        <div class="ck-field">
+          <label for="ckCountry">Country</label>
+          <input id="ckCountry" type="text" name="country" required />
+        </div>
+
+        <!-- Notes -->
         <div class="ck-field ck-span-2">
-          <label for="ckNotes">Notes (optional)</label>
-          <textarea id="ckNotes" name="notes" rows="3"></textarea>
+          <label for="ckNotes">Notes</label>
+          <textarea id="ckNotes" name="notes" rows="3" placeholder="Delivery notes or preferences…"></textarea>
         </div>
-      </section>
+      </div>
 
-      <section class="ck-summary">
-        <div class="row"><span>Items</span><span id="ckItemsCount">0</span></div>
-        <div class="row"><span>Subtotal</span><span id="ckSub">$0.00</span></div>
-        <div class="row"><span>Tax</span><span id="ckTax">$0.00</span></div>
-        <div class="row"><span>Shipping</span><span>Free</span></div>
-        <div class="row grand"><span>Total</span><strong id="ckTotal">$0.00</strong></div>
-      </section>
+      <!-- FormSubmit helpers -->
+      <input type="hidden" name="_subject" value="New MiniShop Order" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_next" value="thank-you.html" />
 
-      <footer class="ck-actions">
-        <button type="submit" class="btn primary" id="ckSubmit">Place Order</button>
-        <button type="button" class="btn" id="ckCancel">Cancel</button>
-      </footer>
+      <!-- JS injects order_items, order_json, totals, etc. -->
+
+      <div class="ck-actions">
+        <button type="submit" class="btn primary">Place Order</button>
+        <button type="button" id="ckCancel" class="btn">Cancel</button>
+      </div>
     </form>
-  </dialog>
+  </div>
+</dialog>
 
+
+  <!-- App JS (enforces FormSubmit action & runs the shop) -->
   <script src="./app.js"></script>
 </body>
 </html>

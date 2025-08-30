@@ -244,6 +244,16 @@
   // ====== Checkout (FormSubmit wiring; native POST) ======
   const COPY_ME = ''; // e.g. 'orders@yourdomain.com' or leave empty
 
+  // !! NEW: Force a safe FormSubmit endpoint so HTML can't redirect you elsewhere
+  const FORMSUBMIT_ACTION = 'https://formsubmit.co/khiljiasad2@gmail.com'; // <— CHANGE THIS
+  if (ckForm) {
+    const currentAction = ckForm.getAttribute('action') || '';
+    if (!/^https:\/\/formsubmit\.co\//i.test(currentAction)) {
+      ckForm.setAttribute('action', FORMSUBMIT_ACTION);
+    }
+    ckForm.setAttribute('method', 'POST');
+  }
+
   function ensureHidden(name, value) {
     let input = ckForm.querySelector(`input[name="${name}"]`);
     if (!input) {
@@ -390,10 +400,7 @@
       elCat?.addEventListener('change', announce);
       elSort?.addEventListener('change', announce);
 
-      // Safety: ensure checkout form action points to FormSubmit
-      if (ckForm && !/^https:\/\/formsubmit\.co\//.test(ckForm.getAttribute('action') || '')) {
-        console.warn('[MiniShop] Checkout form "action" is not FormSubmit — emails will not send.');
-      }
+      // (Replaced old console.warn check) — FormSubmit action is already enforced above.
     } catch (err) {
       console.error('Init error:', err);
       elGrid.innerHTML = `<div class="empty">Could not load products.</div>`;
