@@ -245,7 +245,7 @@
   const COPY_ME = ''; // e.g. 'orders@yourdomain.com' or leave empty
 
   // !! NEW: Force a safe FormSubmit endpoint so HTML can't redirect you elsewhere
-  const FORMSUBMIT_ACTION = 'https://formsubmit.co/khiljiasad2@gmail.com'; // <— CHANGE THIS
+  const FORMSUBMIT_ACTION = 'https://formsubmit.co/'; // <— CHANGE THIS
   if (ckForm) {
     const currentAction = ckForm.getAttribute('action') || '';
     if (!/^https:\/\/formsubmit\.co\//i.test(currentAction)) {
