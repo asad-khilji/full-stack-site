@@ -14,7 +14,7 @@
       "featured": true,
       "new": false,
       "description": "Over-ear Bluetooth 5.3 with 30h battery and soft memory-foam cushions.",
-      "image": "./images/product-1.jpg"
+      "image": "product-1.jpg"
     },
     {
       "id": "sku-1002",
