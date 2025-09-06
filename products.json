@@ -28,7 +28,7 @@
       "featured": true,
       "new": true,
       "description": "AMOLED display, 7-day battery, GPS, heart-rate & sleep tracking.",
-      "image": "./images/product-2.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1003",
@@ -42,7 +42,7 @@
       "featured": false,
       "new": false,
       "description": "Double-wall stainless steel with leak-proof cap. Keeps cold 24h.",
-      "image": "./images/product-3.jpg"
+      "image": "product-1.jpg"
     },
     {
       "id": "sku-1004",
@@ -56,7 +56,7 @@
       "featured": true,
       "new": false,
       "description": "Mid-weight fleece with kangaroo pocket and cozy interior.",
-      "image": "./images/product-4.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1005",
@@ -70,7 +70,7 @@
       "featured": false,
       "new": true,
       "description": "Hot-swappable switches, RGB, USB-C. Tactile brown switches.",
-      "image": "./images/product-5.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1006",
@@ -84,7 +84,7 @@
       "featured": false,
       "new": false,
       "description": "Adjustable LED with color temperature & brightness control.",
-      "image": "./images/product-6.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1007",
@@ -98,7 +98,7 @@
       "featured": true,
       "new": false,
       "description": "Comfort harness, rain cover, hydration sleeve, 10 pockets.",
-      "image": "./images/product-7.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1008",
@@ -112,7 +112,7 @@
       "featured": false,
       "new": false,
       "description": "Active noise isolation, 24h total battery with case.",
-      "image": "./images/product-8.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1009",
@@ -126,7 +126,7 @@
       "featured": true,
       "new": false,
       "description": "Pre-seasoned, great heat retention, oven safe.",
-      "image": "./images/product-9.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1010",
@@ -140,7 +140,7 @@
       "featured": false,
       "new": true,
       "description": "Breathable mesh upper with responsive foam midsole.",
-      "image": "./images/product-10.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1011",
@@ -154,7 +154,7 @@
       "featured": false,
       "new": true,
       "description": "10-inch tablet, quad speakers, 64GB storage (expandable).",
-      "image": "./images/product-11.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1012",
@@ -168,7 +168,7 @@
       "featured": false,
       "new": false,
       "description": "Clean-burn soy wax with natural cedar & amber notes.",
-      "image": "./images/product-12.jpg"
+       "image": "product-1.jpg"
     }
   ]
 }
