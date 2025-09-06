@@ -12,13 +12,10 @@
   <header>
     <div class="bar">
       <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none">
-            <path d="M4 12a8 8 0 0116 0" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="12" cy="12" r="3.5" stroke="white" stroke-width="2"/>
-          </svg>
-        </div>
-        <span>MiniShop</span>
+        <!-- <div class="logo" aria-hidden="true">
+          
+        </div> -->
+        <span><a href="index.html">MiniShop</a></span>
       </div>
 
       <div class="controls">
@@ -40,23 +37,15 @@
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="wrap">
-      <div>
-        <div class="headline">Find your next favorite thing</div>
-        <div class="sub">Electronics, apparel, home & more — all in one tidy shop.</div>
-      </div>
-      <button id="demoAdd" class="btn primary">Demo: Add Sample Items</button>
-    </div>
-  </section>
-
   <!-- Catalog -->
   <main class="wrap">
     <div id="empty" class="empty" hidden>No products found.</div>
     <!-- Keep the id for JS; add class for CSS -->
     <div id="grid" class="grid" aria-label="0 products shown"></div>
   </main>
+
+  <!-- Product Detail Page -->
+<section id="productPage" hidden aria-live="polite"></section>
 
   <!-- Cart Drawer -->
   <aside id="drawer" class="drawer" aria-hidden="true">
