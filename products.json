@@ -41,8 +41,7 @@
       "stock": 120,
       "featured": false,
       "new": false,
-      "description": "Double-wall stainless steel with leak-proof cap. Keeps cold 24h.",
-      "image": "product-1.jpg"
+       "image": "product-1.jpg"
     },
     {
       "id": "sku-1004",
