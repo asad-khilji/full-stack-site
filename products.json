@@ -13,7 +13,8 @@
       "stock": 42,
       "featured": true,
       "new": false,
-      "description": "Over-ear Bluetooth 5.3 with 30h battery and soft memory-foam cushions."
+      "description": "Over-ear Bluetooth 5.3 with 30h battery and soft memory-foam cushions.",
+      "image": "./images/product-1.jpg"
     },
     {
       "id": "sku-1002",
@@ -26,7 +27,8 @@
       "stock": 18,
       "featured": true,
       "new": true,
-      "description": "AMOLED display, 7-day battery, GPS, heart-rate & sleep tracking."
+      "description": "AMOLED display, 7-day battery, GPS, heart-rate & sleep tracking.",
+      "image": "./images/product-2.jpg"
     },
     {
       "id": "sku-1003",
@@ -39,7 +41,8 @@
       "stock": 120,
       "featured": false,
       "new": false,
-      "description": "Double-wall stainless steel with leak-proof cap. Keeps cold 24h."
+      "description": "Double-wall stainless steel with leak-proof cap. Keeps cold 24h.",
+      "image": "./images/product-3.jpg"
     },
     {
       "id": "sku-1004",
@@ -52,7 +55,8 @@
       "stock": 65,
       "featured": true,
       "new": false,
-      "description": "Mid-weight fleece with kangaroo pocket and cozy interior."
+      "description": "Mid-weight fleece with kangaroo pocket and cozy interior.",
+      "image": "./images/product-4.jpg"
     },
     {
       "id": "sku-1005",
@@ -65,7 +69,8 @@
       "stock": 27,
       "featured": false,
       "new": true,
-      "description": "Hot-swappable switches, RGB, USB-C. Tactile brown switches."
+      "description": "Hot-swappable switches, RGB, USB-C. Tactile brown switches.",
+      "image": "./images/product-5.jpg"
     },
     {
       "id": "sku-1006",
@@ -78,7 +83,8 @@
       "stock": 80,
       "featured": false,
       "new": false,
-      "description": "Adjustable LED with color temperature & brightness control."
+      "description": "Adjustable LED with color temperature & brightness control.",
+      "image": "./images/product-6.jpg"
     },
     {
       "id": "sku-1007",
@@ -91,7 +97,8 @@
       "stock": 39,
       "featured": true,
       "new": false,
-      "description": "Comfort harness, rain cover, hydration sleeve, 10 pockets."
+      "description": "Comfort harness, rain cover, hydration sleeve, 10 pockets.",
+      "image": "./images/product-7.jpg"
     },
     {
       "id": "sku-1008",
@@ -104,7 +111,8 @@
       "stock": 54,
       "featured": false,
       "new": false,
-      "description": "Active noise isolation, 24h total battery with case."
+      "description": "Active noise isolation, 24h total battery with case.",
+      "image": "./images/product-8.jpg"
     },
     {
       "id": "sku-1009",
@@ -117,7 +125,8 @@
       "stock": 33,
       "featured": true,
       "new": false,
-      "description": "Pre-seasoned, great heat retention, oven safe."
+      "description": "Pre-seasoned, great heat retention, oven safe.",
+      "image": "./images/product-9.jpg"
     },
     {
       "id": "sku-1010",
@@ -130,7 +139,8 @@
       "stock": 25,
       "featured": false,
       "new": true,
-      "description": "Breathable mesh upper with responsive foam midsole."
+      "description": "Breathable mesh upper with responsive foam midsole.",
+      "image": "./images/product-10.jpg"
     },
     {
       "id": "sku-1011",
@@ -143,7 +153,8 @@
       "stock": 12,
       "featured": false,
       "new": true,
-      "description": "10-inch tablet, quad speakers, 64GB storage (expandable)."
+      "description": "10-inch tablet, quad speakers, 64GB storage (expandable).",
+      "image": "./images/product-11.jpg"
     },
     {
       "id": "sku-1012",
@@ -156,7 +167,8 @@
       "stock": 100,
       "featured": false,
       "new": false,
-      "description": "Clean-burn soy wax with natural cedar & amber notes."
+      "description": "Clean-burn soy wax with natural cedar & amber notes.",
+      "image": "./images/product-12.jpg"
     }
   ]
 }
