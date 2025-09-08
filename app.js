@@ -137,7 +137,6 @@
             <div class="title">${p.title}</div>
             <div class="price-row">
               <div class="price">${fmt(p.price)}</div>
-              <div class="rating" aria-label="Rating ${p.rating ?? 0} out of 5">★ ${(p.rating ?? 0).toFixed(1)}</div>
             </div>
           </div>
         </a>
@@ -378,8 +377,6 @@
               <h1 class="pp-title">${p.title}</h1>
               <div class="pp-meta">
                 <span class="pp-price">${fmt(p.price)}</span>
-                <span class="pp-rating" aria-label="Rating ${p.rating ?? 0} out of 5">★ ${(p.rating ?? 0).toFixed(1)}</span>
-                ${p.reviews ? `<span class="pp-reviews">(${p.reviews} reviews)</span>` : ''}
               </div>
               ${p.category ? `<div class="pp-cat">Category: <strong>${p.category}</strong></div>` : ''}
               <p class="pp-desc">${p.description || ''}</p>
