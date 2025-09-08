@@ -135,7 +135,6 @@
           </div>
           <div class="body">
             <div class="title">${p.title}</div>
-            <div class="desc">${p.description || ''}</div>
             <div class="price-row">
               <div class="price">${fmt(p.price)}</div>
               <div class="rating" aria-label="Rating ${p.rating ?? 0} out of 5">★ ${(p.rating ?? 0).toFixed(1)}</div>
