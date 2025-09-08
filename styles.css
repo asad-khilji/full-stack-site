@@ -197,3 +197,164 @@ footer{ padding: 30px 20px; color: var(--muted) }
 /* Make entire product card tile clickable; action row separated */
 .card .card-link{ display:block; color:inherit; text-decoration:none; }
 .card .card-actions{ padding: 0 14px 14px; }
+
+/* ===== Checkout Modal – Polished ===== */
+
+/* Top-layer dim + blur */
+.ck-modal::backdrop{
+  background: rgba(15,23,42,.55);           /* slate-900 ~55% */
+  backdrop-filter: blur(6px);
+  animation: ck-fade .18s ease-out both;
+}
+
+/* Dialog container is transparent; card holds visuals */
+.ck-modal{
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+/* Card */
+.ck-card{
+  width: min(880px, 92vw);
+  margin: 0 auto;
+  background:
+    radial-gradient(1200px 600px at -20% -20%, #e2e8f0 0, transparent 60%),
+    var(--panel);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 80px rgba(2,8,23,.35), var(--shadow);
+  overflow: clip;
+  animation: ck-rise .22s ease-out both;
+}
+
+/* Sticky-style header inside the card */
+.ck-header{
+  position: sticky;
+  top: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #ffffff 65%, rgba(255,255,255,.85));
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.ck-header h3{ margin: 0; font-size: 18px; font-weight: 800; letter-spacing:.2px }
+.ck-header .ck-close{
+  border: 1px solid rgba(0,0,0,.08);
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+.ck-header .ck-close:hover{ background:#e2e8f0 }
+
+/* Content area */
+.ck-card form{ padding: 16px 18px 12px }
+
+/* Summary panel */
+.ck-summary{
+  background: linear-gradient(135deg, #f8fafc, #ffffff);
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: grid; gap: 8px;
+}
+.ck-summary .row{
+  display:flex; justify-content:space-between; color: var(--muted);
+}
+.ck-summary .grand{
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0,0,0,.12);
+  color: var(--text);
+  font-weight: 800; font-size: 18px;
+}
+
+/* Grid for fields */
+.ck-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 12px;
+}
+.ck-field{ display: grid; gap: 6px }
+.ck-span-2{ grid-column: span 2 }
+@media (max-width: 720px){
+  .ck-grid{ grid-template-columns: 1fr }
+  .ck-span-2{ grid-column: 1 / -1 }
+}
+
+/* Labels + controls */
+.ck-field label{
+  font-size: 12px;
+  letter-spacing:.02em;
+  color: var(--muted);
+  font-weight: 700;
+}
+.ck-field input,
+.ck-field textarea{
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,.14);
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+.ck-field textarea{ resize: vertical; min-height: 96px; }
+.ck-field input:focus,
+.ck-field textarea:focus{
+  border-color: transparent;
+  box-shadow: 0 0 0 3px var(--ring);
+  background: #fff;
+}
+
+/* Helpful invalid styling (native constraint validation) */
+.ck-field input:invalid:not(:placeholder-shown),
+.ck-field textarea:invalid:not(:placeholder-shown){
+  border-color: rgba(220,38,38,.55); /* red-600 */
+  box-shadow: 0 0 0 2px rgba(220,38,38,.25);
+}
+.ck-field input:required + .hint::before,
+.ck-field textarea:required + .hint::before{ content:"* "; color: var(--danger) }
+
+/* Actions footer */
+.ck-actions{
+  display:flex; gap:10px; justify-content:flex-end;
+  padding: 14px 0 2px;
+  position: sticky; bottom: -6px;
+  background: linear-gradient(180deg, transparent, #fff 45%, #fff);
+  border-top: 1px solid rgba(0,0,0,.06);
+  margin-top: 8px;
+}
+
+/* Buttons inherit your .btn tokens; tweak for prominence */
+.ck-actions .btn.primary{
+  box-shadow: 0 8px 24px rgba(37,99,235,.35);
+}
+.ck-actions .btn.primary:hover{
+  filter: saturate(1.05);
+  transform: translateY(-1px);
+}
+.ck-actions .btn:active{ transform: translateY(1px) }
+
+/* Small totals shown inside the drawer reuse your tokens — no change */
+
+/* Animations (respect motion preferences) */
+@keyframes ck-fade{ from{ opacity:0 } to{ opacity:1 } }
+@keyframes ck-rise{
+  from{ opacity:.6; transform: translateY(8px) scale(.995) }
+  to{ opacity:1; transform: none }
+}
+@media (prefers-reduced-motion: reduce){
+  .ck-modal::backdrop, .ck-card{ animation: none !important }
+}
+
+/* Optional: Dark-mode polish if you add a .dark class on <body> later */
+body.dark .ck-card{ background: linear-gradient(135deg, #0b1229, #0f172a) }
+body.dark .ck-header{ background: linear-gradient(180deg, #0f172a 65%, rgba(15,23,42,.85)) }
+body.dark .ck-summary{ background: linear-gradient(135deg, #0f172a, #111827); border-color: rgba(255,255,255,.06) }
+body.dark .ck-field input,
+body.dark .ck-field textarea{ background:#0f172a; border-color: rgba(255,255,255,.08); color:#e5e7eb }
+body.dark .ck-field input:focus,
+body.dark .ck-field textarea:focus{ box-shadow: 0 0 0 3px rgba(59,130,246,.35) }
+
