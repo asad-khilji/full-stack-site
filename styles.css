@@ -358,3 +358,51 @@ body.dark .ck-field textarea{ background:#0f172a; border-color: rgba(255,255,255
 body.dark .ck-field input:focus,
 body.dark .ck-field textarea:focus{ box-shadow: 0 0 0 3px rgba(59,130,246,.35) }
 
+/* Product card thumbnail */
+.thumb{
+  aspect-ratio: 16 / 10;              /* consistent tile height from width */
+  display: grid; 
+  place-items: center;                 /* center both axes */
+  background: linear-gradient(135deg, #0b1229, #152654);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Image: fill box logically, never stretch, always centered */
+.thumb img{
+  width: 100%;
+  height: 100%;
+  display: block;                      /* removes baseline gap */
+  object-fit: contain;                 /* keep proportions */
+  object-position: center center;      /* force centering */
+  /* optional: drop-shadow if you like */
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,.45));
+  overflow: hidden;
+}
+
+/* Product page image: same visual size for any image */
+.pp-media{
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #eef2f7, #fff);
+  border-radius: 12px;
+
+  /* fixed-but-responsive height so every product looks the same */
+  height: clamp(320px, 42vw, 520px);   /* min -> fluid -> max */
+  padding: 12px;                       /* breathing room for contain */
+}
+@media (max-width: 900px){
+  .pp-media{ height: clamp(260px, 55vw, 380px); }
+}
+
+/* Force the image to fill the box proportionally */
+.pp-media img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;    /* keep aspect ratio, no cropping */
+  object-position: center;
+  display: block;
+  overflow: hidden;
+}
+
