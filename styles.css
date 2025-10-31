@@ -392,6 +392,10 @@ body.dark .ck-field textarea:focus{ box-shadow: 0 0 0 3px rgba(59,130,246,.35) }
   height: clamp(320px, 42vw, 520px);   /* min -> fluid -> max */
   padding: 12px;                       /* breathing room for contain */
 }
+
+#paypal-button-container {
+  margin-top: 14px;
+}
 @media (max-width: 900px){
   .pp-media{ height: clamp(260px, 55vw, 380px); }
 }
