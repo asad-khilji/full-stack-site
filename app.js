@@ -1,6 +1,7 @@
 /* -------------------------------------------------------------
    MiniShop — Vanilla E-Commerce (HTML • CSS • JS • JSON)
-   Now with: sticky header, product detail page (#/p/:id) routing.
+   Now with: sticky header, product detail page (#/p/:id) routing,
+   and PayPal button on checkout.
 ---------------------------------------------------------------- */
 
 (() => {
@@ -292,6 +293,86 @@
     });
   }
 
+  // === PayPal rendering helper (NEW) ===
+  function renderPayPalButtons(totalsData, items) {
+    const ppContainer = document.getElementById('paypal-button-container');
+    if (!ppContainer || !window.paypal) return;
+
+    // Re-render cleanly if user opened checkout multiple times
+    ppContainer.innerHTML = '';
+
+    window.paypal.Buttons({
+      style: {
+        layout: 'horizontal',
+        shape: 'rect',
+        label: 'paypal'
+      },
+
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            amount: {
+              currency_code: 'USD',
+              value: totalsData.grand.toFixed(2),
+              breakdown: {
+                item_total: {
+                  currency_code: 'USD',
+                  value: totalsData.subtotal.toFixed(2)
+                },
+                tax_total: {
+                  currency_code: 'USD',
+                  value: totalsData.tax.toFixed(2)
+                },
+                shipping: {
+                  currency_code: 'USD',
+                  value: '0.00'
+                }
+              }
+            },
+            items: items.map(i => ({
+              name: i.title,
+              unit_amount: {
+                currency_code: 'USD',
+                value: Number(i.price).toFixed(2)
+              },
+              quantity: String(i.qty)
+            }))
+          }]
+        });
+      },
+
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          const cart = getCart();
+          const t = totals(cart);
+
+          // inject usual fields
+          ensureHidden('order_items', cartToText(cart));
+          ensureHidden('order_json',  cartToJSON(cart, t));
+          ensureHidden('subtotal',    t.subtotal.toFixed(2));
+          ensureHidden('tax',         t.tax.toFixed(2));
+          ensureHidden('total',       t.grand.toFixed(2));
+
+          // extra PayPal metadata
+          ensureHidden('payment_method', 'PayPal');
+          ensureHidden('paypal_order_id', data.orderID || '');
+          ensureHidden('paypal_payer_email', details?.payer?.email_address || '');
+          ensureHidden('paypal_payer_name', details?.payer?.name ? (details.payer.name.given_name + ' ' + details.payer.name.surname) : '');
+
+          ckForm?.submit();    // FormSubmit will receive everything
+
+          // let the normal submit handler clear cart
+          closeCheckout();
+        });
+      },
+
+      onError: function(err) {
+        console.error('PayPal error:', err);
+        alert('There was an issue with PayPal. You can still place the order with the regular button.');
+      }
+    }).render('#paypal-button-container');
+  }
+
   function openCheckout() {
     const cart = getCart();
     const t = totals(cart);
@@ -299,6 +380,12 @@
     ckSub.textContent   = fmt(t.subtotal);
     ckTax.textContent   = fmt(t.tax);
     ckTotal.textContent = fmt(t.grand);
+
+    // render PayPal for current cart (if SDK loaded)
+    if (window.paypal) {
+      renderPayPalButtons(t, cart);
+    }
+
     if (ckDialog && typeof ckDialog.showModal === 'function') ckDialog.showModal();
   }
   function closeCheckout() { try { ckDialog?.close(); } catch {} }
@@ -315,6 +402,7 @@
     const emailField = ckForm.querySelector('input[name="email"]');
     if (emailField?.value) ensureHidden('_replyto', emailField.value);
     localStorage.removeItem(CART_KEY); // clear on submit
+    renderCartLines();
   });
 
   // ====== Events / Wiring ======
