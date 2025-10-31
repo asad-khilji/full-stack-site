@@ -12,9 +12,6 @@
   <header>
     <div class="bar">
       <div class="brand">
-        <!-- <div class="logo" aria-hidden="true">
-          
-        </div> -->
         <span><a href="index.html">MiniShop</a></span>
       </div>
 
@@ -40,12 +37,11 @@
   <!-- Catalog -->
   <main class="wrap">
     <div id="empty" class="empty" hidden>No products found.</div>
-    <!-- Keep the id for JS; add class for CSS -->
     <div id="grid" class="grid" aria-label="0 products shown"></div>
   </main>
 
   <!-- Product Detail Page -->
-<section id="productPage" hidden aria-live="polite"></section>
+  <section id="productPage" hidden aria-live="polite"></section>
 
   <!-- Cart Drawer -->
   <aside id="drawer" class="drawer" aria-hidden="true">
@@ -76,90 +72,91 @@
   </aside>
 
   <!-- Checkout Modal -->
-  <!-- Your CSS targets .ck-modal (dialog), .ck-card, .ck-header, .ck-grid, etc. -->
-<dialog id="checkoutDialog" class="ck-modal">
-  <div class="ck-card">
-    <div class="ck-header">
-      <h3>Checkout</h3>
-      <button type="button" class="btn icon ck-close" aria-label="Close">✖</button>
-    </div>
+  <dialog id="checkoutDialog" class="ck-modal">
+    <div class="ck-card">
+      <div class="ck-header">
+        <h3>Checkout</h3>
+        <button type="button" class="btn icon ck-close" aria-label="Close">✖</button>
+      </div>
 
-    <form id="checkoutForm"
-          action="https://formsubmit.co"
-          method="POST" novalidate>
-      <div class="ck-grid">
-        <!-- Summary (full width) -->
-        <div class="ck-field ck-span-2">
-          <div class="ck-summary">
-            <div class="row"><span>Items</span> <span><span id="ckItemsCount">0</span></span></div>
-            <div class="row"><span>Subtotal</span> <span id="ckSub">$0.00</span></div>
-            <div class="row"><span>Tax</span> <span id="ckTax">$0.00</span></div>
-            <div class="row grand"><span>Total</span> <span id="ckTotal">$0.00</span></div>
+      <form id="checkoutForm"
+            action="https://formsubmit.co"
+            method="POST" novalidate>
+        <div class="ck-grid">
+          <!-- Summary (full width) -->
+          <div class="ck-field ck-span-2">
+            <div class="ck-summary">
+              <div class="row"><span>Items</span> <span><span id="ckItemsCount">0</span></span></div>
+              <div class="row"><span>Subtotal</span> <span id="ckSub">$0.00</span></div>
+              <div class="row"><span>Tax</span> <span id="ckTax">$0.00</span></div>
+              <div class="row grand"><span>Total</span> <span id="ckTotal">$0.00</span></div>
+            </div>
+          </div>
+
+          <!-- Customer Info -->
+          <div class="ck-field">
+            <label for="ckName">Name</label>
+            <input id="ckName" type="text" name="name" required />
+          </div>
+
+          <div class="ck-field">
+            <label for="ckEmail">Email</label>
+            <input id="ckEmail" type="email" name="email" required />
+          </div>
+
+          <!-- Address -->
+          <div class="ck-field ck-span-2">
+            <label for="ckAddress">Address</label>
+            <input id="ckAddress" type="text" name="address" placeholder="Street address" required />
+          </div>
+
+          <div class="ck-field">
+            <label for="ckCity">City</label>
+            <input id="ckCity" type="text" name="city" required />
+          </div>
+
+          <div class="ck-field">
+            <label for="ckState">State/Province</label>
+            <input id="ckState" type="text" name="state" required />
+          </div>
+
+          <div class="ck-field">
+            <label for="ckZip">ZIP/Postal</label>
+            <input id="ckZip" type="text" name="zip" required />
+          </div>
+
+          <div class="ck-field">
+            <label for="ckCountry">Country</label>
+            <input id="ckCountry" type="text" name="country" required />
+          </div>
+
+          <!-- Notes -->
+          <div class="ck-field ck-span-2">
+            <label for="ckNotes">Notes</label>
+            <textarea id="ckNotes" name="notes" rows="3" placeholder="Delivery notes or preferences…"></textarea>
           </div>
         </div>
 
-        <!-- Customer Info -->
-        <div class="ck-field">
-          <label for="ckName">Name</label>
-          <input id="ckName" type="text" name="name" required />
+        <!-- FormSubmit helpers -->
+        <input type="hidden" name="_subject" value="New MiniShop Order" />
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_template" value="table" />
+
+        <!-- PayPal button slot -->
+        <div id="paypal-button-container" style="margin-top:14px"></div>
+
+        <div class="ck-actions">
+          <button type="submit" class="btn primary">Place Order</button>
+          <button type="button" id="ckCancel" class="btn">Cancel</button>
         </div>
+      </form>
+    </div>
+  </dialog>
 
-        <div class="ck-field">
-          <label for="ckEmail">Email</label>
-          <input id="ckEmail" type="email" name="email" required />
-        </div>
+  <!-- PayPal SDK (replace client-id!) -->
+  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID_HERE&currency=USD"></script>
 
-        <!-- Address -->
-        <div class="ck-field ck-span-2">
-          <label for="ckAddress">Address</label>
-          <input id="ckAddress" type="text" name="address" placeholder="Street address" required />
-        </div>
-
-        <div class="ck-field">
-          <label for="ckCity">City</label>
-          <input id="ckCity" type="text" name="city" required />
-        </div>
-
-        <div class="ck-field">
-          <label for="ckState">State/Province</label>
-          <input id="ckState" type="text" name="state" required />
-        </div>
-
-        <div class="ck-field">
-          <label for="ckZip">ZIP/Postal</label>
-          <input id="ckZip" type="text" name="zip" required />
-        </div>
-
-        <div class="ck-field">
-          <label for="ckCountry">Country</label>
-          <input id="ckCountry" type="text" name="country" required />
-        </div>
-
-        <!-- Notes -->
-        <div class="ck-field ck-span-2">
-          <label for="ckNotes">Notes</label>
-          <textarea id="ckNotes" name="notes" rows="3" placeholder="Delivery notes or preferences…"></textarea>
-        </div>
-      </div>
-
-      <!-- FormSubmit helpers -->
-      <input type="hidden" name="_subject" value="New MiniShop Order" />
-      <input type="hidden" name="_captcha" value="false" />
-      <input type="hidden" name="_template" value="table" />
-    
-
-      <!-- JS injects order_items, order_json, totals, etc. -->
-
-      <div class="ck-actions">
-        <button type="submit" class="btn primary">Place Order</button>
-        <button type="button" id="ckCancel" class="btn">Cancel</button>
-      </div>
-    </form>
-  </div>
-</dialog>
-
-
-  <!-- App JS (enforces FormSubmit action & runs the shop) -->
+  <!-- App JS -->
   <script src="./app.js"></script>
 </body>
 </html>
